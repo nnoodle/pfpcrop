@@ -1,0 +1,5 @@
+{:deps {org.openjfx/javafx-controls {:mvn/version "17.0.1"}}
+ :aliases
+ {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.7.4" :git/sha "ac442da"}
+                 com.gluonhq/substrate {:mvn/version "0.0.51"}}
+          :ns-default build}}}
