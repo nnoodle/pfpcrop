@@ -1,7 +1,10 @@
 package pfpcrop;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
@@ -39,11 +42,13 @@ public class PfpCrop extends Application {
     private static final ExtensionFilter IMAGE_JPEG = new ExtensionFilter("JPEG Images", "*.jpg", "*.jpeg");
 
     private ImagePane pane;
-    private String initialImage = getClass().getResource("/pfpcrop/naruto.jpg").toString();
+    private URL initialImage = getClass().getResource("/pfpcrop/naruto.jpg");
 
+    private File initialDirectory = new File(System.getProperty("user.dir"));
+    
     @Override
     public void start(Stage stage) {
-        pane = new ImagePane(initialImage, 420);
+        pane = new ImagePane(initialImage.toString(), 420);
 
         var pickerBtn = new Button("Open");
         pickerBtn.setOnAction(e -> {
@@ -52,7 +57,14 @@ public class PfpCrop extends Application {
                 if (f == null)
                     return;
                 initialDirectory = new File(f.getParent());
-                pane.setImage(new Image("file://"+f.toString()));
+                try {
+                    pane.setImage(new Image(new FileInputStream(f)));
+                    initialImage = f.toURL();
+                } catch (FileNotFoundException err) {
+                    return;
+                } catch (MalformedURLException err) {
+                    throw new RuntimeException(err);
+                }
             });
 
         var saveBtn = new Button("Save");
@@ -136,8 +148,6 @@ public class PfpCrop extends Application {
         stage.show();
     }
 
-    private File initialDirectory = new File(System.getProperty("user.dir"));
-
     private FileChooser openChooser(Stage stage, String title) {
         var fc = new FileChooser();
         fc.setTitle(title);
@@ -174,7 +184,7 @@ public class PfpCrop extends Application {
         catch (IOException err) {}
 
         try {
-            BufferedImage bi = ImageIO.read(new URL(pane.imageView.getImage().getUrl()));
+            BufferedImage bi = ImageIO.read(initialImage);
             BufferedImage img = bi.getSubimage((int)v.getMinX(), (int)v.getMinY(), (int)v.getWidth(), (int)v.getHeight());
             ImageIO.write(img, type, out);
         } catch (IOException err) {
@@ -186,8 +196,12 @@ public class PfpCrop extends Application {
     @Override
     public void init() {
         if (!getParameters().getUnnamed().isEmpty()) {
-            var f = new File(getParameters().getUnnamed().get(0));
-            initialImage = f.toURI().toString();
+            File f = new File(getParameters().getUnnamed().get(0));
+            try {
+                initialImage = f.toURL();
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
             if (!f.exists())
                 throw new AssertionError(String.format("Image ‘%s’ does not exist.", f.toString()));
         }
