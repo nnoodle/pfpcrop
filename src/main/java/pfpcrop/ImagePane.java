@@ -272,8 +272,7 @@ public class ImagePane extends Region {
         double yProportion = imageViewCoordinates.getY() / imageView.getBoundsInLocal().getHeight();
 
         Rectangle2D viewport = imageView.getViewport();
-        return new Point2D(
-                           viewport.getMinX() + xProportion * viewport.getWidth(),
+        return new Point2D(viewport.getMinX() + xProportion * viewport.getWidth(),
                            viewport.getMinY() + yProportion * viewport.getHeight());
     }
 }
